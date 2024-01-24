@@ -8,10 +8,10 @@ def api_status():
         "status": "API is running!"
     }
 
-@app.route("/tasks")
-def get_tasks():
+@app.route("/clients")
+def get_clients():
     return {
-        "tasks" : []
+        "clients" : []
     }
 
 if __name__ == "__main__":
