@@ -17,11 +17,12 @@ def api_status():
 @app.route("/clients", methods=['POST'])
 def create_client():
     data = request.get_json()
-    new_client = Client(id=str(uuid.uuid4()), name=data.get("name"), email=data.get("email", ""), cel=data.get("cel", ""))
+    new_client_id = str(uuid.uuid4())
+    new_client = Client(id=new_client_id, name=data.get("name"), email=data.get("email", ""), cel=data.get("cel", ""))
     clients.append(new_client)
     print( new_client.to_dict() )
     print(clients)
-    return jsonify({"message": "Novo cliente criado com sucesso"}), 201
+    return jsonify({"message": "Novo cliente criado com sucesso", "id": new_client_id }), 201
 
 
 @app.route("/clients", methods=['GET'])
