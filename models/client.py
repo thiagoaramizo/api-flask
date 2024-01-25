@@ -6,7 +6,7 @@ class Client():
         self.__cel = cel
 
     def get_id(self):
-        return self._id
+        return self.__id
 
     def get_name(self):
         return self.__name
@@ -29,3 +29,10 @@ class Client():
         self.__cel = cel
         return
     
+    def to_dict(self):
+        return {
+            "id": self.__id,
+            "name": self.__name,
+            "email": self.__email,
+            "cel": self.__cel
+        }
