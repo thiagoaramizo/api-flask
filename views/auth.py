@@ -1,7 +1,8 @@
 from flask import request, jsonify
-from flask_login import LoginManager, login_user, logout_user, login_required, current_user
+from flask_login import LoginManager, login_user, logout_user, login_required, confirm_login
+import bcrypt
 
-from controllers.app import app # importação do app
+from views.app import app # importação do app
 from database import db
 from models.user import User
 
@@ -23,11 +24,17 @@ def login():
 
     if username and password:
         user = User.query.filter_by(username=username).first()
-        if user and user.password == password:
+        if user and bcrypt.checkpw( str.encode(password), user.password ):
             login_user(user)
             return jsonify( {"message": "Autenticação realizada com sucesso", "id": user.id} )
     
     return jsonify({"message": "Credenciais invalidas"}), 400  
+
+
+@app.route("/validate", methods=['GET'])
+@login_required
+def validate():
+    return jsonify({"message": "Valid"})
 
 
 @app.route("/logout", methods=["GET"])

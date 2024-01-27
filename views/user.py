@@ -1,8 +1,9 @@
 from flask import request, jsonify
 from flask_login import login_required, current_user
 import uuid
+import bcrypt
 
-from controllers.app import app # importação do app
+from views.app import app # importação do app
 from database import db
 from models.user import User
 
@@ -12,9 +13,11 @@ def create_user():
     username = data["username"]
     email = data["email"]
     password = data["password"]
+    hashed_password = bcrypt.hashpw( str.encode(password), bcrypt.gensalt() )
+
     if username and email and password:
         new_id = str(uuid.uuid4())
-        new_user = User(username=username, email=email, password=password, id=new_id)
+        new_user = User(username=username, email=email, password=hashed_password, id=new_id, role="user")
         db.session.add(new_user)
         db.session.commit()
         return jsonify( {"message": "Usuário criado com sucesso", "id": new_id} )
@@ -36,9 +39,12 @@ def update_password(user_id):
     user = User.query.get(user_id)
     data = request.get_json()
     if user and data["password"]:
-        user.password = data["password"]
-        db.session.commit()
-        return jsonify({"message": "Usuário atualizado."})
+        if user.id == current_user.id or user.role == "admin":
+            hashed_password = bcrypt.hashpw( str.encode(data["password"]), bcrypt.gensalt() )
+            user.password = hashed_password
+            db.session.commit()
+            return jsonify({"message": "Usuário atualizado."})
+        return jsonify({"message": "Operação não permitida."}), 403
     return jsonify({"message": "Usuário não encontrado."}), 404
 
 
@@ -47,10 +53,8 @@ def update_password(user_id):
 def delete_user(user_id):
     user = User.query.get(user_id)
     if user:
-
-        if current_user.id == user.id: #verificando se não é o mesmo usuário
-            return jsonify({"message": "Remoção não permitida."}), 403
-   
+        if current_user.role != "admin" or current_user.id == user.id:
+            return jsonify({"message": "Operação não permitida."}), 403
         db.session.delete(user)
         db.session.commit()
         return jsonify({"message": "Usuário deletado."})
